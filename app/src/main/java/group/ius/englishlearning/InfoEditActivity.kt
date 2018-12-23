@@ -1,5 +1,8 @@
 package group.ius.englishlearning
 
+import android.app.AlertDialog
+import android.content.DialogInterface
+import android.content.Intent
 import android.os.AsyncTask
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -16,6 +19,7 @@ import kotlinx.android.synthetic.main.activity_info_edit.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+
 
 class InfoEditActivity : AppCompatActivity() {
 
@@ -50,6 +54,39 @@ class InfoEditActivity : AppCompatActivity() {
                         }
                     }
             )
+
+            accDeleteButton.visibility = View.VISIBLE
+
+            accDeleteButton.setOnClickListener {
+                val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
+                    when (which) {
+                        DialogInterface.BUTTON_POSITIVE -> {
+                            backendService.deleteUser().enqueue(
+                                    object : Callback<Unit> {
+                                        override fun onFailure(call: Call<Unit>, t: Throwable) {
+                                            println(t.message)
+                                        }
+
+                                        override fun onResponse(call: Call<Unit>, response: Response<Unit>) {
+                                            val i = baseContext.packageManager
+                                                    .getLaunchIntentForPackage(baseContext.packageName)
+                                            i!!.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                                            startActivity(i)
+                                        }
+                                    }
+                            )
+                        }
+
+                        DialogInterface.BUTTON_NEGATIVE -> {
+                            dialog.dismiss()
+                        }
+                    }
+                }
+
+                val builder = AlertDialog.Builder(this)
+                builder.setMessage("Are you sure?").setPositiveButton("Yes", dialogClickListener)
+                        .setNegativeButton("No", dialogClickListener).show()
+            }
         }
 
         saveButton.setOnClickListener { attemptChange() }
@@ -108,41 +145,20 @@ class InfoEditActivity : AppCompatActivity() {
                         firstNameInputEditText.text.toString(),
                         secondNameInputEditText.text.toString())
 
-                RetrofitBackend.backendService.performRegistration(registrationData).enqueue(
-                        object : Callback<Unit> {
-                            override fun onFailure(call: Call<Unit>, t: Throwable) {
-                                println(t.message)
-                            }
+                val regResp = RetrofitBackend.backendService.performRegistration(registrationData).execute()
 
-                            override fun onResponse(call: Call<Unit>, response: Response<Unit>) {}
-                        }
-                )
+                return regResp.code() == 200
             } else {
                 val newNick = NickName(nickInputEditText.text.toString())
-
-                backendService.changeNickname(newNick).enqueue(object : Callback<Unit> {
-                    override fun onFailure(call: Call<Unit>, t: Throwable) {
-                        println(t.message)
-                    }
-
-                    override fun onResponse(call: Call<Unit>, response: Response<Unit>) {}
-                })
+                backendService.changeNickname(newNick).execute()
 
                 val newPass = Password(passInputEditText.text.toString())
 
                 if (newPass.newPassword.isNotEmpty()) {
-                    backendService.changePassword(newPass).enqueue(
-                            object : Callback<Unit> {
-                                override fun onFailure(call: Call<Unit>, t: Throwable) {
-                                    println(t.message)
-                                }
-
-                                override fun onResponse(call: Call<Unit>, response: Response<Unit>) {}
-                            }
-                    )
+                    backendService.changePassword(newPass).execute()
                 }
+                return true
             }
-            return true
         }
 
         override fun onPostExecute(success: Boolean?) {

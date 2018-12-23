@@ -1,13 +1,18 @@
 package group.ius.englishlearning
 
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.os.Handler
 import android.support.v7.app.AppCompatActivity
 import android.view.Gravity
 import android.widget.Button
 import android.widget.Toast
+import group.ius.englishlearning.TrainResultActivity.Companion.STUDIED_COUNT
+import group.ius.englishlearning.TrainResultActivity.Companion.SUCCESS_RATE
+import group.ius.englishlearning.model.RegisterTrainResultResponse
 import group.ius.englishlearning.model.TrainEntry
 import group.ius.englishlearning.retrofit.RetrofitBackend
 import kotlinx.android.synthetic.main.activity_training.*
@@ -34,6 +39,7 @@ class TrainingActivity : AppCompatActivity() {
 
     private var listOfTrainWords: List<TrainEntry> = emptyList()
     private var index = 0
+    private var successCount = 0.0
 
     private var chosenTranslation: String? = null
 
@@ -56,9 +62,20 @@ class TrainingActivity : AppCompatActivity() {
                     }
 
                     override fun onResponse(call: Call<List<TrainEntry>>, response: Response<List<TrainEntry>>) {
-                        listOfTrainWords = response.body()!!
-                        setListeners()
-                        updateWords()
+
+                        val body = response.body()
+                        if (body != null) {
+                            listOfTrainWords = response.body()!!
+                            setListeners()
+                            updateWords()
+                        } else {
+                            Toast.makeText(this@TrainingActivity,
+                                    "Not enough words in dictionary",
+                                    Toast.LENGTH_SHORT).apply { setGravity(Gravity.CENTER, 0, 300) }
+                                    .show()
+
+                            Handler().postDelayed({ finish() }, 2000)
+                        }
                     }
                 }
         )
@@ -82,13 +99,22 @@ class TrainingActivity : AppCompatActivity() {
 
     private fun updateWords() {
         if (index == 9) {
-            RetrofitBackend.backendService.registerTrainResult(resulMap).enqueue(object : Callback<Unit> {
-                override fun onFailure(call: Call<Unit>, t: Throwable) {}
+            RetrofitBackend.backendService.registerTrainResult(resulMap).enqueue(object : Callback<RegisterTrainResultResponse> {
+                override fun onFailure(call: Call<RegisterTrainResultResponse>, t: Throwable) {}
 
-                override fun onResponse(call: Call<Unit>, response: Response<Unit>) {}
+                override fun onResponse(call: Call<RegisterTrainResultResponse>, response: Response<RegisterTrainResultResponse>) {
 
+                    val result = response.body()!!
+
+                    val resultIntent = Intent(this@TrainingActivity, TrainResultActivity::class.java)
+
+                    resultIntent.putExtra(SUCCESS_RATE, successCount / 10)
+                    resultIntent.putExtra(STUDIED_COUNT, result.newlyStudied)
+
+                    startActivity(resultIntent)
+                    finish()
+                }
             })
-            finish()
         }
 
         resetButtons()
@@ -112,6 +138,9 @@ class TrainingActivity : AppCompatActivity() {
 
                 val wasRight = chosenTranslation == entry.rightTranslation
 
+                if (wasRight) {
+                    successCount++
+                }
 
                 Toast.makeText(this@TrainingActivity,
                         if (wasRight) "Right" else "Wrong",
@@ -120,9 +149,9 @@ class TrainingActivity : AppCompatActivity() {
 
                 resulMap[entry.wordId.toString()] = wasRight
 
-                updateWords()
-
                 chosenTranslation = null
+
+                Handler().postDelayed({ updateWords() }, 1500)
             }
         }
     }

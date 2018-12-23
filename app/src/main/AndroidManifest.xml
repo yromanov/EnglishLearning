@@ -42,9 +42,23 @@
                 android:configChanges="orientation"
                 android:screenOrientation="portrait">
         </activity>
-        <activity android:name=".TrainingActivity"
-                  android:configChanges="orientation"
-                  android:screenOrientation="portrait">>
+        <activity
+                android:name=".TrainingActivity"
+                android:configChanges="orientation"
+                android:screenOrientation="portrait">
+            >
+        </activity>
+        <activity
+                android:name=".SummaryActivity"
+                android:configChanges="orientation"
+                android:screenOrientation="portrait">
+        </activity>
+        <activity
+                android:name=".TrainResultActivity"
+                android:configChanges="orientation"
+                android:screenOrientation="portrait">
+        </activity>
+        <activity android:name=".WordSummaryActivity">
         </activity>
     </application>
 

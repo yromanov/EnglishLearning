@@ -47,7 +47,6 @@ class MenuActivity : AppCompatActivity() {
                 }
             }
 
-            println("GOGOGOGOGOGOO!!!!")
             true
         }
     }
@@ -56,6 +55,12 @@ class MenuActivity : AppCompatActivity() {
         val randomIntent = Intent(this, InfoEditActivity::class.java)
 
         startActivity(randomIntent)
+    }
+
+    fun openSummaryActivity(view: View) {
+        val summaryIntent = Intent(this, SummaryActivity::class.java)
+
+        startActivity(summaryIntent)
     }
 
     fun openDictionaryActivity(view: View) {

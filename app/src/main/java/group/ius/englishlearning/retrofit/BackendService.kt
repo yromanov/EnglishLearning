@@ -30,6 +30,22 @@ interface BackendService {
     @GET("user/userInfo")
     fun getUserData(): Call<UserData>
 
+    @POST("user/delete")
+    fun deleteUser(): Call<Unit>
+
+    @GET("user/summary")
+    fun getSummary(): Call<Summary>
+
+    @POST("user/word/changeTranslation")
+    fun changeTranslation(@Query("id") id: Int,
+                          @Query("newTranslation") newTranslation: String): Call<Unit>
+
+    @GET("user/word/info")
+    fun getWordInfo(@Query("id") id: Int): Call<WordInfo>
+
+    @POST("user/word/delete")
+    fun deleteWord(@Query("id") id: Int): Call<Unit>
+
     @GET("user/dictionary")
     fun getUserDictionary(): Call<List<UserDictonaryEntry>>
 
@@ -38,7 +54,7 @@ interface BackendService {
                                   @Body chosenTranslation: ChosenTranslation): Call<Unit>
 
     @POST("user/registerTrainResult")
-    fun registerTrainResult(@Body result: Map<String, Boolean>): Call<Unit>
+    fun registerTrainResult(@Body result: Map<String, Boolean>): Call<RegisterTrainResultResponse>
 
     @GET("user/trainWordsList")
     fun getTrainWordsList(@Query("languageOfTrain") languageOfTrain: String): Call<List<TrainEntry>>
