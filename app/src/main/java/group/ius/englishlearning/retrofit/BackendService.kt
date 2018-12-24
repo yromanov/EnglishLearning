@@ -21,11 +21,8 @@ interface BackendService {
     @POST("user/perform_registration")
     fun performRegistration(@Body registrationData: RegistrationData): Call<Unit>
 
-    @POST("user/changeNickname")
-    fun changeNickname(@Body nickname: NickName): Call<Unit>
-
-    @POST("user/changePassword")
-    fun changePassword(@Body pass: Password): Call<Unit>
+    @POST("user/changeCredentials")
+    fun changeCredentials(@Body registrationData: RegistrationData): Call<Unit>
 
     @GET("user/userInfo")
     fun getUserData(): Call<UserData>

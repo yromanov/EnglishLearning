@@ -7,8 +7,6 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.View
-import group.ius.englishlearning.model.NickName
-import group.ius.englishlearning.model.Password
 import group.ius.englishlearning.model.RegistrationData
 import group.ius.englishlearning.model.UserData
 import group.ius.englishlearning.retrofit.RetrofitBackend
@@ -149,14 +147,21 @@ class InfoEditActivity : AppCompatActivity() {
 
                 return regResp.code() == 200
             } else {
-                val newNick = NickName(nickInputEditText.text.toString())
-                backendService.changeNickname(newNick).execute()
 
-                val newPass = Password(passInputEditText.text.toString())
+                val registrationData = RegistrationData(nickInputEditText.text.toString(),
+                        emailInputEditText.text.toString(),
+                        passInputEditText.text.toString(),
+                        firstNameInputEditText.text.toString(),
+                        secondNameInputEditText.text.toString()
+                )
 
-                if (newPass.newPassword.isNotEmpty()) {
-                    backendService.changePassword(newPass).execute()
-                }
+                backendService.changeCredentials(registrationData).execute()
+
+                val i = baseContext.packageManager
+                        .getLaunchIntentForPackage(baseContext.packageName)
+                i!!.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                startActivity(i)
+
                 return true
             }
         }

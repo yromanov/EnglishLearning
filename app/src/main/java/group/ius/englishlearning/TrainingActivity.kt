@@ -84,6 +84,7 @@ class TrainingActivity : AppCompatActivity() {
     private fun setListeners() {
         listOfButtons.forEach { button: Button ->
             button.setOnClickListener {
+                resetButtons()
                 button.background = borderBackground
                 chosenTranslation = button.text.toString()
             }
@@ -91,7 +92,6 @@ class TrainingActivity : AppCompatActivity() {
     }
 
     private fun resetButtons() {
-        println("reset!")
         listOfButtons.forEach {
             it.background = defaultBack!!
         }
@@ -115,43 +115,43 @@ class TrainingActivity : AppCompatActivity() {
                     finish()
                 }
             })
-        }
+        } else {
+            resetButtons()
 
-        resetButtons()
+            val entry = listOfTrainWords[index++]
 
-        val entry = listOfTrainWords[index++]
+            trainWord.text = entry.word
 
-        trainWord.text = entry.word
+            val randomIndexies = helpCollection.shuffled().subList(0, 5)
 
-        val randomIndexies = helpCollection.shuffled().subList(0, 5)
+            val shuffledAnswersIterator = randomIndexies.map { entry.wrongTranslations[it] }
+                    .plus(entry.rightTranslation).shuffled().listIterator()
 
-        val shuffledAnswersIterator = randomIndexies.map { entry.wrongTranslations[it] }
-                .plus(entry.rightTranslation).shuffled().listIterator()
+            listOfButtons.forEach { button: Button ->
+                button.text = shuffledAnswersIterator.next()
+            }
 
-        listOfButtons.forEach { button: Button ->
-            button.text = shuffledAnswersIterator.next()
-        }
+            submitButton.setOnClickListener {
+                if (chosenTranslation != null) {
+                    resetButtons()
 
-        submitButton.setOnClickListener {
-            if (chosenTranslation != null) {
-                resetButtons()
+                    val wasRight = chosenTranslation == entry.rightTranslation
 
-                val wasRight = chosenTranslation == entry.rightTranslation
+                    if (wasRight) {
+                        successCount++
+                    }
 
-                if (wasRight) {
-                    successCount++
+                    Toast.makeText(this@TrainingActivity,
+                            if (wasRight) "Right" else "Wrong",
+                            Toast.LENGTH_SHORT).apply { setGravity(Gravity.CENTER, 0, 300) }
+                            .show()
+
+                    resulMap[entry.wordId.toString()] = wasRight
+
+                    chosenTranslation = null
+
+                    Handler().postDelayed({ updateWords() }, 1000)
                 }
-
-                Toast.makeText(this@TrainingActivity,
-                        if (wasRight) "Right" else "Wrong",
-                        Toast.LENGTH_SHORT).apply { setGravity(Gravity.CENTER, 0, 300) }
-                        .show()
-
-                resulMap[entry.wordId.toString()] = wasRight
-
-                chosenTranslation = null
-
-                Handler().postDelayed({ updateWords() }, 1500)
             }
         }
     }
